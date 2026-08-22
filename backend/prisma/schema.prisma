@@ -1,0 +1,144 @@
+// Prisma schema for BugLab
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String?
+  githubId     String?  @unique
+  avatarUrl    String?
+
+  role         UserRole @default(USER)
+
+  xp           Int      @default(0)
+  level        Int      @default(1)
+
+  attempts         BugAttempt[]
+  activities       Activity[]
+  streak            Streak?
+  achievements      UserAchievement[]
+  githubConnection  GitHubConnection?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Bug {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  difficulty  Difficulty @default(EASY)
+  language    String
+  topic       String
+
+  attempts    BugAttempt[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  BOSS
+}
+
+model BugAttempt {
+  id        Int           @id @default(autoincrement())
+
+  userId    Int
+  bugId     Int
+
+  status    AttemptStatus @default(FAILED)
+  hintsUsed Int           @default(0)
+  timeSpent Int           @default(0)
+
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  bug  Bug  @relation(fields: [bugId], references: [id])
+}
+
+enum AttemptStatus {
+  FAILED
+  PASSED
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  date      DateTime
+  solved    Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Streak {
+  id           Int      @id @default(autoincrement())
+
+  userId       Int      @unique
+  current      Int      @default(0)
+  longest      Int      @default(0)
+  lastSolvedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Achievement {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  icon        String?
+  xpReward    Int      @default(0)
+
+  users       UserAchievement[]
+
+  createdAt   DateTime @default(now())
+}
+
+model UserAchievement {
+  id            Int      @id @default(autoincrement())
+
+  userId        Int
+  achievementId Int
+
+  earnedAt      DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+}
+
+model GitHubConnection {
+  id           Int      @id @default(autoincrement())
+
+  userId       Int      @unique
+  githubId     String
+  username     String
+  accessToken  String
+
+  connectedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
