@@ -13,7 +13,7 @@ app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "BugLab API is running 🚀",
+    message: "BugLab API is running",
   });
 });
 
