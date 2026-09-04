@@ -5,6 +5,7 @@ const {
   getBugs,
   getBugById,
   updateBug,
+  deleteBug,
 } = require("../controllers/bugController");
 
 const protect = require("../middleware/authMiddleware");
@@ -23,5 +24,8 @@ router.get("/:id", protect, getBugById);
 
 // Update a bug
 router.put("/:id", protect, adminOnly, updateBug);
+
+// Delete a bug
+router.delete("/:id", protect, adminOnly, deleteBug);
 
 module.exports = router;

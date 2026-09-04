@@ -10,6 +10,7 @@ const prisma = new PrismaClient({ adapter });
 // =========================
 // CREATE BUG
 // =========================
+
 const createBug = async (req, res) => {
   try {
     const {
@@ -20,14 +21,12 @@ const createBug = async (req, res) => {
       topic,
     } = req.body;
 
-    // Validate required fields
     if (!title || !description || !language || !topic) {
       return res.status(400).json({
         message: "Title, description, language and topic are required",
       });
     }
 
-    // Create bug
     const bug = await prisma.bug.create({
       data: {
         title,
@@ -54,6 +53,7 @@ const createBug = async (req, res) => {
 // =========================
 // GET ALL BUGS
 // =========================
+
 const getBugs = async (req, res) => {
   try {
     const bugs = await prisma.bug.findMany({
@@ -78,18 +78,17 @@ const getBugs = async (req, res) => {
 // =========================
 // GET BUG BY ID
 // =========================
+
 const getBugById = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    // Validate bug ID
     if (Number.isNaN(id)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
 
-    // Find bug
     const bug = await prisma.bug.findUnique({
       where: {
         id,
@@ -117,6 +116,7 @@ const getBugById = async (req, res) => {
 // =========================
 // UPDATE BUG
 // =========================
+
 const updateBug = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
@@ -174,11 +174,60 @@ const updateBug = async (req, res) => {
 };
 
 // =========================
-// EXPORTS
+// DELETE BUG
 // =========================
+
+const deleteBug = async (req, res) => {
+  try {
+    const bugId = Number(req.params.id);
+
+    // Validate bug ID
+    if (Number.isNaN(bugId)) {
+      return res.status(400).json({
+        message: "Invalid bug ID",
+      });
+    }
+
+    // Check if bug exists
+    const existingBug = await prisma.bug.findUnique({
+      where: {
+        id: bugId,
+      },
+    });
+
+    if (!existingBug) {
+      return res.status(404).json({
+        message: "Bug not found",
+      });
+    }
+
+    // Delete bug
+    await prisma.bug.delete({
+      where: {
+        id: bugId,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Bug deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete bug error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+// =========================
+// EXPORT CONTROLLERS
+// =========================
+
 module.exports = {
   createBug,
   getBugs,
   getBugById,
   updateBug,
+  deleteBug,
 };
