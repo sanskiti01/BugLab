@@ -13,19 +13,14 @@ const adminOnly = require("../middleware/adminMiddleware");
 
 const router = express.Router();
 
-// Create a bug
 router.post("/", protect, adminOnly, createBug);
 
-// Get all bugs
 router.get("/", protect, getBugs);
 
-// Get one bug
 router.get("/:id", protect, getBugById);
 
-// Update a bug
 router.put("/:id", protect, adminOnly, updateBug);
 
-// Delete a bug
 router.delete("/:id", protect, adminOnly, deleteBug);
 
 module.exports = router;
