@@ -28,6 +28,23 @@ if (
     message: "Submitted solution is required",
   });
 }
+if (
+  hintsUsed !== undefined &&
+  (typeof hintsUsed !== "number" || hintsUsed < 0)
+) {
+  return res.status(400).json({
+    message: "hintsUsed must be a non-negative number",
+  });
+}
+
+if (
+  timeSpent !== undefined &&
+  (typeof timeSpent !== "number" || timeSpent < 0)
+) {
+  return res.status(400).json({
+    message: "timeSpent must be a non-negative number",
+  });
+}
 
     // Validate bug ID
     if (Number.isNaN(bugId)) {
@@ -48,11 +65,6 @@ if (
         message: "Bug not found",
       });
     }
-
-    // Create attempt
-    // Status is decided by the server.
-    // A newly submitted solution starts as FAILED
-    // until the solution is actually evaluated.
     const attempt = await prisma.bugAttempt.create({
       data: {
         userId: req.user.id,
