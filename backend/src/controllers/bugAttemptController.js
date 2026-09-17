@@ -7,9 +7,6 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-// =========================
-// CREATE BUG ATTEMPT
-// =========================
 const createBugAttempt = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
@@ -19,41 +16,40 @@ const createBugAttempt = async (req, res) => {
       hintsUsed,
       timeSpent,
     } = req.body;
-    // Validate submitted solution
-if (
-  typeof submittedSolution !== "string" ||
-  submittedSolution.trim() === ""
-) {
-  return res.status(400).json({
-    message: "Submitted solution is required",
-  });
-}
-if (
-  hintsUsed !== undefined &&
-  (typeof hintsUsed !== "number" || hintsUsed < 0)
-) {
-  return res.status(400).json({
-    message: "hintsUsed must be a non-negative number",
-  });
-}
 
-if (
-  timeSpent !== undefined &&
-  (typeof timeSpent !== "number" || timeSpent < 0)
-) {
-  return res.status(400).json({
-    message: "timeSpent must be a non-negative number",
-  });
-}
+    if (
+      typeof submittedSolution !== "string" ||
+      submittedSolution.trim() === ""
+    ) {
+      return res.status(400).json({
+        message: "Submitted solution is required",
+      });
+    }
 
-    // Validate bug ID
+    if (
+      hintsUsed !== undefined &&
+      (typeof hintsUsed !== "number" || hintsUsed < 0)
+    ) {
+      return res.status(400).json({
+        message: "hintsUsed must be a non-negative number",
+      });
+    }
+
+    if (
+      timeSpent !== undefined &&
+      (typeof timeSpent !== "number" || timeSpent < 0)
+    ) {
+      return res.status(400).json({
+        message: "timeSpent must be a non-negative number",
+      });
+    }
+
     if (Number.isNaN(bugId)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
 
-    // Check that bug exists
     const bug = await prisma.bug.findUnique({
       where: {
         id: bugId,
@@ -65,6 +61,7 @@ if (
         message: "Bug not found",
       });
     }
+
     const attempt = await prisma.bugAttempt.create({
       data: {
         userId: req.user.id,
@@ -89,6 +86,49 @@ if (
   }
 };
 
+const getUserAttemptHistory = async (req, res) => {
+  try {
+    const attempts = await prisma.bugAttempt.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      include: {
+        bug: {
+          select: {
+            id: true,
+            title: true,
+            difficulty: true,
+            language: true,
+            topic: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      count: attempts.length,
+      attempts,
+    });
+  } catch (error) {
+    console.error("Get attempt history error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   createBugAttempt,
+  getUserAttemptHistory,
 };
