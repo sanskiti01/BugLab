@@ -7,6 +7,7 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+
 const createBugAttempt = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
@@ -43,13 +44,13 @@ const createBugAttempt = async (req, res) => {
         message: "timeSpent must be a non-negative number",
       });
     }
-
     if (Number.isNaN(bugId)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
 
+    // Check that bug exists
     const bug = await prisma.bug.findUnique({
       where: {
         id: bugId,
@@ -128,7 +129,55 @@ const getUserAttemptHistory = async (req, res) => {
   }
 };
 
+const getUserAttemptHistoryWithJoin = async (req, res) => {
+  try {
+    const attempts = await prisma.$queryRaw`
+      SELECT
+        ba.id AS "attemptId",
+        ba."userId",
+        ba."bugId",
+        ba.status,
+        ba."hintsUsed",
+        ba."timeSpent",
+        ba."createdAt",
+        ba."submittedSolution",
+
+        u.username,
+        u.email,
+
+        b.title AS "bugTitle",
+        b.difficulty,
+        b.language,
+        b.topic
+
+      FROM "BugAttempt" AS ba
+
+      INNER JOIN "User" AS u
+        ON ba."userId" = u.id
+
+      INNER JOIN "Bug" AS b
+        ON ba."bugId" = b.id
+
+      WHERE ba."userId" = ${req.user.id}
+
+      ORDER BY ba."createdAt" DESC
+    `;
+
+    return res.status(200).json({
+      count: attempts.length,
+      attempts,
+    });
+  } catch (error) {
+    console.error("SQL JOIN attempt history error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   createBugAttempt,
   getUserAttemptHistory,
+  getUserAttemptHistoryWithJoin,
 };
