@@ -49,6 +49,7 @@ model BugAttempt {
   createdAt         DateTime      @default(now())
   bug               Bug           @relation(fields: [bugId], references: [id])
   user              User          @relation(fields: [userId], references: [id])
+  @@index([userId])
 }
 
 model BugTestCase {
