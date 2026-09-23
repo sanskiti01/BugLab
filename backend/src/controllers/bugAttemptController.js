@@ -175,9 +175,68 @@ const getUserAttemptHistoryWithJoin = async (req, res) => {
     });
   }
 };
+const getFilteredAttempts = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    if (status !== "FAILED" && status !== "PASSED") {
+      return res.status(400).json({
+        message: "Status must be FAILED or PASSED",
+      });
+    }
+
+    const attempts = await prisma.bugAttempt.findMany({
+      where: {
+        userId: req.user.id,
+        status: status,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      count: attempts.length,
+      status,
+      attempts,
+    });
+  } catch (error) {
+    console.error("Filter attempts error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+const getAttemptStats = async (req, res) => {
+  try {
+    const stats = await prisma.$queryRaw`
+      SELECT
+        status,
+        COUNT(*)::int AS count
+      FROM "BugAttempt"
+      WHERE "userId" = ${req.user.id}
+      GROUP BY status
+      ORDER BY status
+    `;
+
+    return res.status(200).json({
+      stats,
+    });
+  } catch (error) {
+    console.error("Attempt stats error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
 
 module.exports = {
   createBugAttempt,
   getUserAttemptHistory,
   getUserAttemptHistoryWithJoin,
+  getFilteredAttempts,
+  getAttemptStats,
 };

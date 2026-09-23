@@ -4,6 +4,8 @@ const {
   createBugAttempt,
   getUserAttemptHistory,
   getUserAttemptHistoryWithJoin,
+  getFilteredAttempts,
+  getAttemptStats,
 } = require("../controllers/bugAttemptController");
 
 const protect = require("../middleware/authMiddleware");
@@ -18,6 +20,8 @@ router.get(
   getUserAttemptHistoryWithJoin
 );
 
+router.get("/attempts/filter", protect, getFilteredAttempts);
+router.get("/attempts/stats", protect, getAttemptStats);
 router.post("/:id/attempt", protect, createBugAttempt);
 
 module.exports = router;
