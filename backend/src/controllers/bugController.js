@@ -7,9 +7,6 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-// =========================
-// CREATE BUG
-// =========================
 
 const createBug = async (req, res) => {
   try {
@@ -50,10 +47,6 @@ const createBug = async (req, res) => {
   }
 };
 
-// =========================
-// GET ALL BUGS
-// =========================
-
 const getBugs = async (req, res) => {
   try {
     const bugs = await prisma.bug.findMany({
@@ -75,9 +68,6 @@ const getBugs = async (req, res) => {
   }
 };
 
-// =========================
-// GET BUG BY ID
-// =========================
 
 const getBugById = async (req, res) => {
   try {
@@ -112,10 +102,6 @@ const getBugById = async (req, res) => {
     });
   }
 };
-
-// =========================
-// UPDATE BUG
-// =========================
 
 const updateBug = async (req, res) => {
   try {
@@ -173,22 +159,17 @@ const updateBug = async (req, res) => {
   }
 };
 
-// =========================
-// DELETE BUG
-// =========================
 
 const deleteBug = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
 
-    // Validate bug ID
     if (Number.isNaN(bugId)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
 
-    // Check if bug exists
     const existingBug = await prisma.bug.findUnique({
       where: {
         id: bugId,
@@ -201,7 +182,6 @@ const deleteBug = async (req, res) => {
       });
     }
 
-    // Delete bug
     await prisma.bug.delete({
       where: {
         id: bugId,
@@ -220,9 +200,6 @@ const deleteBug = async (req, res) => {
   }
 };
 
-// =========================
-// EXPORT CONTROLLERS
-// =========================
 
 module.exports = {
   createBug,

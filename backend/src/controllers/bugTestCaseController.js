@@ -7,7 +7,6 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-// CREATE TEST CASE
 const createTestCase = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
@@ -18,21 +17,18 @@ const createTestCase = async (req, res) => {
       isHidden,
     } = req.body;
 
-    // Validate bug ID
     if (Number.isNaN(bugId)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
 
-    // Validate required fields
     if (!input || !expectedOutput) {
       return res.status(400).json({
         message: "Input and expected output are required",
       });
     }
 
-    // Check that bug exists
     const bug = await prisma.bug.findUnique({
       where: {
         id: bugId,
@@ -45,7 +41,6 @@ const createTestCase = async (req, res) => {
       });
     }
 
-    // Create test case
     const testCase = await prisma.bugTestCase.create({
       data: {
         bugId,
@@ -67,19 +62,15 @@ const createTestCase = async (req, res) => {
     });
   }
 };
-// GET TEST CASES FOR A BUG
 const getTestCases = async (req, res) => {
   try {
     const bugId = Number(req.params.id);
 
-    // Validate bug ID
     if (Number.isNaN(bugId)) {
       return res.status(400).json({
         message: "Invalid bug ID",
       });
     }
-
-    // Check that bug exists
     const bug = await prisma.bug.findUnique({
       where: {
         id: bugId,
@@ -91,8 +82,6 @@ const getTestCases = async (req, res) => {
         message: "Bug not found",
       });
     }
-
-    // Get test cases
     const testCases = await prisma.bugTestCase.findMany({
   where: {
     bugId,

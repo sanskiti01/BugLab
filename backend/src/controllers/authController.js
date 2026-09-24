@@ -10,10 +10,6 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-
-// =========================
-// REGISTER USER
-// =========================
 const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -25,7 +21,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Check if username or email already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -41,10 +36,8 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         username,
@@ -53,7 +46,6 @@ const registerUser = async (req, res) => {
       },
     });
 
-    // Send response
     return res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -76,9 +68,6 @@ const registerUser = async (req, res) => {
 };
 
 
-// =========================
-// LOGIN USER
-// =========================
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,28 +79,24 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
       where: {
         email,
       },
     });
 
-    // User not found
     if (!user) {
       return res.status(401).json({
         message: "Invalid email or password",
       });
     }
 
-    // Check if user has a password
     if (!user.passwordHash) {
       return res.status(401).json({
         message: "This account does not have a password",
       });
     }
 
-    // Compare password
     const passwordMatch = await bcrypt.compare(
       password,
       user.passwordHash
@@ -122,8 +107,6 @@ const loginUser = async (req, res) => {
         message: "Invalid email or password",
       });
     }
-
-    // Create JWT token
     const token = jwt.sign(
       {
         id: user.id,
@@ -136,7 +119,6 @@ const loginUser = async (req, res) => {
       }
     );
 
-    // Send response
     return res.status(200).json({
       message: "Login successful",
       token,
@@ -160,9 +142,6 @@ const loginUser = async (req, res) => {
 };
 
 
-// =========================
-// EXPORT
-// =========================
 module.exports = {
   registerUser,
   loginUser,

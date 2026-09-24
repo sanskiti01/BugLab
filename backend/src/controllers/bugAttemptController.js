@@ -49,8 +49,6 @@ const createBugAttempt = async (req, res) => {
         message: "Invalid bug ID",
       });
     }
-
-    // Check that bug exists
     const bug = await prisma.bug.findUnique({
       where: {
         id: bugId,
