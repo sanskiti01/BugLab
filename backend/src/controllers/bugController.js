@@ -18,19 +18,51 @@ const createBug = async (req, res) => {
       topic,
     } = req.body;
 
-    if (!title || !description || !language || !topic) {
-      return res.status(400).json({
-        message: "Title, description, language and topic are required",
-      });
-    }
+    if (
+  typeof title !== "string" ||
+  typeof description !== "string" ||
+  typeof language !== "string" ||
+  typeof topic !== "string"
+) {
+  return res.status(400).json({
+    message: "Title, description, language and topic must be strings",
+  });
+}
+
+const cleanTitle = title.trim();
+const cleanDescription = description.trim();
+const cleanLanguage = language.trim();
+const cleanTopic = topic.trim();
+
+if (
+  !cleanTitle ||
+  !cleanDescription ||
+  !cleanLanguage ||
+  !cleanTopic
+) {
+  return res.status(400).json({
+    message: "Title, description, language and topic cannot be empty",
+  });
+}
+
+const allowedDifficulties = ["EASY", "MEDIUM", "HARD", "BOSS"];
+
+if (
+  difficulty !== undefined &&
+  !allowedDifficulties.includes(difficulty)
+) {
+  return res.status(400).json({
+    message: "Invalid difficulty",
+  });
+}
 
     const bug = await prisma.bug.create({
       data: {
-        title,
-        description,
+        title: cleanTitle,
+        description: cleanDescription,
         difficulty: difficulty || "EASY",
-        language,
-        topic,
+        language: cleanLanguage,
+        topic: cleanTopic,
       },
     });
 
