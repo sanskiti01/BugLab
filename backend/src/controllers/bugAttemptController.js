@@ -61,21 +61,43 @@ const createBugAttempt = async (req, res) => {
       });
     }
 
-    const attempt = await prisma.bugAttempt.create({
-      data: {
-        userId: req.user.id,
-        bugId,
-        submittedSolution: submittedSolution || null,
-        status: "FAILED",
-        hintsUsed: hintsUsed || 0,
-        timeSpent: timeSpent || 0,
-      },
-    });
+    const result = await prisma.$transaction(async (tx) => {
+  const attempt = await tx.bugAttempt.create({
+    data: {
+      userId: req.user.id,
+      bugId,
+      submittedSolution: submittedSolution || null,
+      status: "FAILED",
+      hintsUsed: hintsUsed || 0,
+      timeSpent: timeSpent || 0,
+    },
+  });
 
-    return res.status(201).json({
-      message: "Bug attempt recorded successfully",
-      attempt,
-    });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const activity = await tx.activity.upsert({
+    where: {
+      userId_date: {
+        userId: req.user.id,
+        date: today,
+      },
+    },
+    update: {},
+    create: {
+      userId: req.user.id,
+      date: today,
+      solved: 0,
+    },
+  });
+
+  return { attempt, activity };
+});
+
+  return res.status(201).json({
+    message: "Bug attempt recorded successfully",
+    attempt: result.attempt,
+  });
   } catch (error) {
     console.error("Create bug attempt error:", error);
 
