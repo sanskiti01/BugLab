@@ -6,11 +6,13 @@ const authRoutes = require("./routes/authRoutes");
 const bugRoutes = require("./routes/bugRoutes");
 const bugAttemptRoutes = require("./routes/bugAttemptRoutes");
 const bugTestCaseRoutes = require("./routes/bugTestCaseRoutes");
+const apiRateLimiter = require("./middleware/rateLimitMiddleware");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(apiRateLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bugs", bugAttemptRoutes);
