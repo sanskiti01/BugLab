@@ -2,7 +2,10 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const passport = require("./config/githubPassport");
+
 const authRoutes = require("./routes/authRoutes");
+const githubAuthRoutes = require("./routes/githubAuthRoutes");
 const bugRoutes = require("./routes/bugRoutes");
 const bugAttemptRoutes = require("./routes/bugAttemptRoutes");
 const bugTestCaseRoutes = require("./routes/bugTestCaseRoutes");
@@ -12,9 +15,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 app.use(apiRateLimiter);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", githubAuthRoutes);
+
 app.use("/api/bugs", bugAttemptRoutes);
 app.use("/api/bugs", bugRoutes);
 app.use("/api/bugs", bugTestCaseRoutes);
