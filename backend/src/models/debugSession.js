@@ -6,12 +6,14 @@ const debugSessionSchema = new mongoose.Schema(
       type: Number,
       required: true,
       index: true,
+      ref: "User",
     },
 
     bugId: {
       type: Number,
       required: true,
       index: true,
+      ref: "Bug",
     },
 
     language: {
@@ -42,7 +44,19 @@ const debugSessionSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-
+    events: [
+  {
+    type: {
+      type: String,
+      enum: ["HINT_USED", "CODE_SUBMITTED", "TEST_RUN"],
+      required: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
     createdAt: {
       type: Date,
       default: Date.now,

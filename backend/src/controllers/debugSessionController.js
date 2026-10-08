@@ -7,6 +7,7 @@ const createDebugSession = async (req, res) => {
       bugId,
       language,
       codeSubmitted,
+      events,
     } = req.body;
 
     const session = await DebugSession.create({
@@ -14,6 +15,7 @@ const createDebugSession = async (req, res) => {
       bugId,
       language,
       codeSubmitted,
+      events,
     });
 
     return res.status(201).json({
@@ -28,8 +30,6 @@ const createDebugSession = async (req, res) => {
     });
   }
 };
-
-
 
 const getDebugSessions = async (req, res) => {
   try {
@@ -105,9 +105,41 @@ const deleteDebugSession = async (req, res) => {
     });
   }
 };
+
+const getDebugSessionStats = async (req, res) => {
+  try {
+    const stats = await DebugSession.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          totalSessions: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $sort: {
+          totalSessions: -1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      stats,
+    });
+  } catch (error) {
+    console.error("Get debug session stats error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   createDebugSession,
   getDebugSessions,
   updateDebugSession,
   deleteDebugSession,
+  getDebugSessionStats,
 };
