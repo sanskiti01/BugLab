@@ -135,6 +135,23 @@ const getDebugSessionStats = async (req, res) => {
     });
   }
 };
+const getDebugSessionIndexStats = async (req, res) => {
+  try {
+    const stats = await DebugSession.find({
+      userId: 5,
+    }).explain("executionStats");
+
+    return res.status(200).json({
+      stats,
+    });
+  } catch (error) {
+    console.error("Get debug session index stats error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
 
 module.exports = {
   createDebugSession,
@@ -142,4 +159,5 @@ module.exports = {
   updateDebugSession,
   deleteDebugSession,
   getDebugSessionStats,
+  getDebugSessionIndexStats,
 };
