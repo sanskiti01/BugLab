@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
+const { createBugSubmissionHandler } = require("./bugSubmissionController");
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -7,105 +8,7 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-
-const createBugAttempt = async (req, res) => {
-  try {
-    const bugId = Number(req.params.id);
-
-    const {
-      submittedSolution,
-      hintsUsed,
-      timeSpent,
-    } = req.body;
-
-    if (
-      typeof submittedSolution !== "string" ||
-      submittedSolution.trim() === ""
-    ) {
-      return res.status(400).json({
-        message: "Submitted solution is required",
-      });
-    }
-
-    if (
-      hintsUsed !== undefined &&
-      (typeof hintsUsed !== "number" || hintsUsed < 0)
-    ) {
-      return res.status(400).json({
-        message: "hintsUsed must be a non-negative number",
-      });
-    }
-
-    if (
-      timeSpent !== undefined &&
-      (typeof timeSpent !== "number" || timeSpent < 0)
-    ) {
-      return res.status(400).json({
-        message: "timeSpent must be a non-negative number",
-      });
-    }
-    if (Number.isNaN(bugId)) {
-      return res.status(400).json({
-        message: "Invalid bug ID",
-      });
-    }
-    const bug = await prisma.bug.findUnique({
-      where: {
-        id: bugId,
-      },
-    });
-
-    if (!bug) {
-      return res.status(404).json({
-        message: "Bug not found",
-      });
-    }
-
-    const result = await prisma.$transaction(async (tx) => {
-  const attempt = await tx.bugAttempt.create({
-    data: {
-      userId: req.user.id,
-      bugId,
-      submittedSolution: submittedSolution || null,
-      status: "FAILED",
-      hintsUsed: hintsUsed || 0,
-      timeSpent: timeSpent || 0,
-    },
-  });
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const activity = await tx.activity.upsert({
-    where: {
-      userId_date: {
-        userId: req.user.id,
-        date: today,
-      },
-    },
-    update: {},
-    create: {
-      userId: req.user.id,
-      date: today,
-      solved: 0,
-    },
-  });
-
-  return { attempt, activity };
-});
-
-  return res.status(201).json({
-    message: "Bug attempt recorded successfully",
-    attempt: result.attempt,
-  });
-  } catch (error) {
-    console.error("Create bug attempt error:", error);
-
-    return res.status(500).json({
-      message: "Server error",
-    });
-  }
-};
+const createBugAttempt = createBugSubmissionHandler(prisma);
 
 const getUserAttemptHistory = async (req, res) => {
   try {

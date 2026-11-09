@@ -11,6 +11,7 @@ const bugRoutes = require("./routes/bugRoutes");
 const bugAttemptRoutes = require("./routes/bugAttemptRoutes");
 const bugTestCaseRoutes = require("./routes/bugTestCaseRoutes");
 const debugSessionRoutes = require("./routes/debugSessionRoutes");
+const submissionRoutes = require("./routes/submissionRoutes");
 
 const apiRateLimiter = require("./middleware/rateLimitMiddleware");
 
@@ -27,6 +28,7 @@ app.use("/api/auth", githubAuthRoutes);
 app.use("/api/bugs", bugAttemptRoutes);
 app.use("/api/bugs", bugRoutes);
 app.use("/api/bugs", bugTestCaseRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 app.use("/api/debug-sessions", debugSessionRoutes);
 

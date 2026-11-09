@@ -13,6 +13,7 @@ const createBug = async (req, res) => {
     const {
       title,
       description,
+      starterCode,
       difficulty,
       language,
       topic,
@@ -26,6 +27,16 @@ const createBug = async (req, res) => {
 ) {
   return res.status(400).json({
     message: "Title, description, language and topic must be strings",
+  });
+}
+
+if (
+  starterCode !== undefined &&
+  (typeof starterCode !== "string" ||
+    Buffer.byteLength(starterCode, "utf8") > 32768)
+) {
+  return res.status(400).json({
+    message: "starterCode must be a string no larger than 32 KB",
   });
 }
 
@@ -60,6 +71,7 @@ if (
       data: {
         title: cleanTitle,
         description: cleanDescription,
+        ...(starterCode !== undefined && { starterCode }),
         difficulty: difficulty || "EASY",
         language: cleanLanguage,
         topic: cleanTopic,
@@ -82,6 +94,16 @@ if (
 const getBugs = async (req, res) => {
   try {
     const bugs = await prisma.bug.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        difficulty: true,
+        language: true,
+        topic: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -160,10 +182,21 @@ const updateBug = async (req, res) => {
     const {
       title,
       description,
+      starterCode,
       difficulty,
       language,
       topic,
     } = req.body;
+
+    if (
+      starterCode !== undefined &&
+      (typeof starterCode !== "string" ||
+        Buffer.byteLength(starterCode, "utf8") > 32768)
+    ) {
+      return res.status(400).json({
+        message: "starterCode must be a string no larger than 32 KB",
+      });
+    }
 
     const updatedBug = await prisma.bug.update({
       where: {
@@ -172,6 +205,7 @@ const updateBug = async (req, res) => {
       data: {
         title: title ?? existingBug.title,
         description: description ?? existingBug.description,
+        ...(starterCode !== undefined && { starterCode }),
         difficulty: difficulty ?? existingBug.difficulty,
         language: language ?? existingBug.language,
         topic: topic ?? existingBug.topic,

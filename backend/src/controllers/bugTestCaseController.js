@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
+const toPublicTestCase = require("../utils/publicTestCase");
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -98,18 +99,7 @@ const getTestCases = async (req, res) => {
   },
 });
 
-const safeTestCases = testCases.map((testCase) => {
-  if (testCase.isHidden) {
-    return {
-      id: testCase.id,
-      bugId: testCase.bugId,
-      input: testCase.input,
-      isHidden: true,
-    };
-  }
-
-  return testCase;
-});
+const safeTestCases = testCases.map(toPublicTestCase);
 
     return res.status(200).json({
       count: safeTestCases.length,

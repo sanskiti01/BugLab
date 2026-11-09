@@ -20,22 +20,25 @@ model User {
   updatedAt        DateTime          @updatedAt
   activities       Activity[]
   attempts         BugAttempt[]
+  submissions      CodeSubmission[]
   githubConnection GitHubConnection?
   streak           Streak?
   achievements     UserAchievement[]
 }
 
 model Bug {
-  id          Int           @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   title       String
   description String
-  difficulty  Difficulty    @default(EASY)
+  starterCode String?
+  difficulty  Difficulty       @default(EASY)
   language    String
   topic       String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   attempts    BugAttempt[]
   testCases   BugTestCase[]
+  submissions CodeSubmission[]
 }
 
 model BugAttempt {
@@ -49,16 +52,52 @@ model BugAttempt {
   createdAt         DateTime      @default(now())
   bug               Bug           @relation(fields: [bugId], references: [id])
   user              User          @relation(fields: [userId], references: [id])
+
   @@index([userId])
 }
 
+model CodeSubmission {
+  id                 String           @id @default(uuid()) @db.Uuid
+  userId             Int
+  bugId              Int
+  status             SubmissionStatus @default(QUEUED)
+  idempotencyKey     String
+  requestHash        String
+  submittedSolution  String?
+  hintsUsed          Int              @default(0)
+  timeSpent          Int              @default(0)
+  testCaseIds        Int[]
+  totalTestCases     Int              @default(0)
+  completedTestCases Int              @default(0)
+  results            Json             @default("[]")
+  solved             Boolean?
+  xpAwarded          Int              @default(0)
+  alreadySolved      Boolean          @default(false)
+  attemptCount       Int              @default(0)
+  workerId           String?
+  leaseToken         String?          @db.Uuid
+  leaseUntil         DateTime?
+  failureCode        String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  startedAt          DateTime?
+  finishedAt         DateTime?
+  bug                Bug              @relation(fields: [bugId], references: [id])
+  user               User             @relation(fields: [userId], references: [id])
+
+  @@unique([userId, idempotencyKey])
+  @@index([status, createdAt])
+  @@index([status, leaseUntil])
+  @@index([userId, createdAt])
+}
+
 model BugTestCase {
-  id             Int      @id @default(autoincrement())
+  id             Int     @id @default(autoincrement())
   bugId          Int
   input          String
   expectedOutput String
-  isHidden       Boolean  @default(false)
-  bug            Bug      @relation(fields: [bugId], references: [id])
+  isHidden       Boolean @default(false)
+  bug            Bug     @relation(fields: [bugId], references: [id])
 
   @@index([bugId])
 }
@@ -80,7 +119,7 @@ model Streak {
   current      Int       @default(0)
   longest      Int       @default(0)
   lastSolvedAt DateTime?
-  user         User     @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
 }
 
 model Achievement {
@@ -130,4 +169,11 @@ enum Difficulty {
 enum AttemptStatus {
   FAILED
   PASSED
+}
+
+enum SubmissionStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
 }

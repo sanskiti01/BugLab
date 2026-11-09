@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "worker": "node src/workers/codeSubmissionWorker.js",
+    "worker:dev": "nodemon src/workers/codeSubmissionWorker.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
